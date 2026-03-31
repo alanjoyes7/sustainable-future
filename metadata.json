@@ -1,0 +1,8 @@
+{
+  "name": "The Biome",
+  "description": "A smart waste management assistant that helps users identify, classify, and properly dispose of waste using AI.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
