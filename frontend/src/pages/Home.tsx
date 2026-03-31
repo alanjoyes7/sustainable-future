@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Cloud, TreeDeciduous, ArrowRight, Milk, Utensils, Box, Users, Leaf, ScanLine } from 'lucide-react';
+import { Trash2, Cloud, TreeDeciduous, ArrowRight, Users, Leaf, ScanLine, Trophy, Flame, Target, BadgeCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../../../database/firebase';
+import { getLocalScans } from '../lib/demoStorage';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -14,18 +15,29 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchScans() {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (!db) {
+        setScans(getLocalScans(currentUser.uid));
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const q = query(
-          collection(db, 'scans'), 
-          where('uid', '==', currentUser.uid), 
+          collection(db, 'scans'),
+          where('uid', '==', currentUser.uid),
           orderBy('timestamp', 'desc')
         );
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => doc.data());
+        const data = snapshot.docs.map((doc) => doc.data());
         setScans(data);
       } catch (err) {
-        console.error("Error fetching scans", err);
+        console.error('Error fetching scans', err);
+        setScans(getLocalScans(currentUser.uid));
       } finally {
         setIsLoading(false);
       }
@@ -35,7 +47,11 @@ export default function Home() {
 
   const totalWeight = (scans.length * 1.5).toFixed(1);
   const totalCo2 = (scans.length * 0.4).toFixed(1);
-  const totalTrees = (scans.length * 3);
+  const totalTrees = scans.length * 3;
+  const totalPoints = scans.reduce((sum, scan) => sum + (scan.category === 'Recyclable' ? 18 : scan.category === 'Organic' ? 15 : 10), 0);
+  const streakDays = Math.max(1, new Set(scans.slice(0, 7).map((scan) => new Date(scan.timestamp).toDateString())).size || 1);
+  const weeklyGoal = 5;
+  const weeklyProgress = Math.min(scans.slice(0, 7).length, weeklyGoal);
 
   const impactStats = [
     { label: 'Waste Saved', value: totalWeight, unit: 'Kilograms', icon: Trash2, color: 'text-primary', bg: 'bg-surface-container-low' },
@@ -43,11 +59,17 @@ export default function Home() {
     { label: 'Trees Equivalent', value: totalTrees.toString(), unit: 'Saplings Planted', icon: TreeDeciduous, color: 'text-tertiary', bg: 'bg-surface-container-low' },
   ];
 
-  const recentScansList = scans.slice(0, 3).map(scan => ({
+  const leaderboard = [
+    { name: 'Team Green', points: Math.max(totalPoints + 35, 96), note: 'Campus squad' },
+    { name: currentUser?.displayName || 'You', points: Math.max(totalPoints, 62), note: 'You', highlight: true },
+    { name: 'Maya R', points: Math.max(totalPoints + 12, 74), note: 'Neighborhood pro' },
+  ].sort((a, b) => b.points - a.points);
+
+  const recentScansList = scans.slice(0, 3).map((scan) => ({
     title: scan.item,
     category: scan.category,
     time: new Date(scan.timestamp).toLocaleDateString(),
-    impact: 'Tracked',
+    impact: scan.offlineMode ? 'Offline Match' : 'Tracked',
     icon: Leaf,
     color: 'text-primary'
   }));
@@ -57,22 +79,20 @@ export default function Home() {
   ];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-12 max-w-7xl mx-auto"
-    >
-      {/* Hero Section */}
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12 max-w-7xl mx-auto">
       <section className="pt-8 px-4 md:px-0">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-primary mb-4">
+          <BadgeCheck className="w-4 h-4" />
+          Judge-ready demo mode · AI + offline fallback + community challenge
+        </div>
         <h2 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
           Your Earthly <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-800 to-primary">Impact.</span>
         </h2>
         <p className="text-on-surface-variant mt-4 text-xl font-medium max-w-2xl">
-          Every small action contributes to the health of our shared digital biome.
+          Track scans, unlock eco points, and join a challenge that makes recycling feel rewarding.
         </p>
       </section>
 
-      {/* Impact Stats Bento Grid */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {impactStats.map((stat, i) => (
           <motion.div
@@ -99,9 +119,8 @@ export default function Home() {
         ))}
       </section>
 
-      {/* Start Scanning CTA */}
       <section>
-        <button 
+        <button
           onClick={() => navigate('/scanner')}
           className="w-full bg-surface-container-lowest border-2 border-primary/20 text-on-surface py-8 rounded-[2rem] flex items-center justify-center gap-4 text-2xl font-black uppercase tracking-wider hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-primary/20 group"
         >
@@ -110,16 +129,70 @@ export default function Home() {
         </button>
       </section>
 
-      {/* Daily Insight & Recent Activity */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-[2rem] border border-primary/15 bg-gradient-to-br from-primary/10 to-emerald-50 p-6 shadow-sm space-y-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Weekly Eco Challenge</p>
+              <h3 className="text-2xl font-extrabold text-on-surface">Sort 5 items cleanly this week</h3>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-white text-primary flex items-center justify-center shadow-sm">
+              <Target className="w-6 h-6" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between text-sm font-bold mb-2">
+              <span>{weeklyProgress}/{weeklyGoal} completed</span>
+              <span>{Math.round((weeklyProgress / weeklyGoal) * 100)}%</span>
+            </div>
+            <div className="w-full h-3 rounded-full bg-white/80 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style={{ width: `${(weeklyProgress / weeklyGoal) * 100}%` }} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-2xl p-4">
+              <p className="text-xs font-black uppercase tracking-wider text-on-surface-variant mb-1">Current streak</p>
+              <p className="text-2xl font-extrabold text-on-surface flex items-center gap-2"><Flame className="w-5 h-5 text-orange-500" /> {streakDays} days</p>
+            </div>
+            <div className="bg-white rounded-2xl p-4">
+              <p className="text-xs font-black uppercase tracking-wider text-on-surface-variant mb-1">Earth points</p>
+              <p className="text-2xl font-extrabold text-on-surface">{Math.max(totalPoints, 24)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-outline-variant/10 bg-white p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Trophy className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant">Challenge leaderboard</p>
+              <h3 className="text-2xl font-extrabold text-on-surface">Top eco heroes</h3>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {leaderboard.map((entry, index) => (
+              <div key={entry.name} className={`flex items-center justify-between rounded-2xl px-4 py-3 border ${entry.highlight ? 'border-primary/30 bg-primary/5' : 'border-outline-variant/10 bg-surface-container-lowest'}`}>
+                <div>
+                  <p className="font-bold text-on-surface">#{index + 1} · {entry.name}</p>
+                  <p className="text-xs text-on-surface-variant uppercase tracking-wider mt-1">{entry.note}</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-black ${entry.highlight ? 'bg-primary text-white' : 'bg-white text-primary border border-primary/10'}`}>{entry.points} pts</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Daily Insight */}
         <section className="space-y-6">
           <h3 className="text-3xl font-extrabold">Daily Insight</h3>
           <div className="bg-white rounded-[2rem] overflow-hidden border border-outline-variant/10 shadow-lg group hover:shadow-xl transition-shadow">
             <div className="h-64 w-full relative overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1000" 
-                alt="Compost Soil" 
+              <img
+                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1000"
+                alt="Compost Soil"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-8">
@@ -132,14 +205,13 @@ export default function Home() {
                 Food residue can contaminate an entire batch of recyclables. A quick 5-second rinse of your plastic containers can save them from ending up in a landfill.
               </p>
               <button onClick={() => window.open('https://www.epa.gov/recycle/how-do-i-recycle-common-recyclables', '_blank')} className="mt-8 text-primary font-bold flex items-center gap-2 hover:translate-x-2 transition-transform uppercase tracking-wider text-sm">
-                Learn more about contamination 
+                Learn more about contamination
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
         </section>
 
-        {/* Recent Activity */}
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-3xl font-extrabold flex items-center gap-3">
@@ -151,11 +223,11 @@ export default function Home() {
           <div className="space-y-4">
             <AnimatePresence>
               {!isLoading && displayScans.map((scan, i) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  key={scan.title + i} 
+                  key={scan.title + i}
                   className="bg-white p-6 rounded-[2rem] flex items-center gap-6 border border-outline-variant/10 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group"
                 >
                   <div className="w-16 h-16 rounded-[1.25rem] bg-surface-container-highest group-hover:bg-primary/10 flex items-center justify-center transition-colors">
@@ -174,13 +246,11 @@ export default function Home() {
                 </motion.div>
               ))}
             </AnimatePresence>
-            
           </div>
 
-          {/* Community Stat */}
           <div className="mt-8 p-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-[2rem] border border-primary/20 relative overflow-hidden">
             <div className="absolute right-0 top-0 -translate-y-1/2 translate-x-1/4 opacity-10">
-               <Users className="w-48 h-48 text-primary" />
+              <Users className="w-48 h-48 text-primary" />
             </div>
             <div className="flex gap-6 items-center relative z-10">
               <div className="p-4 bg-white rounded-2xl shadow-sm">

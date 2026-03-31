@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Leaf, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { isFirebaseConfigured } from '../../../database/firebase';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,6 +60,12 @@ export default function AuthPage() {
             {isLogin ? 'Sign in to track your earthly impact and keep saving the planet.' : 'Create an account to start tracking your earthly impact.'}
           </p>
         </div>
+
+        {!isFirebaseConfigured && (
+          <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary font-medium">
+            Firebase keys are not configured locally, so the app will use <span className="font-bold">Demo Mode</span> and local storage.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">

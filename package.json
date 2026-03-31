@@ -9,7 +9,8 @@
     "start": "node backend/server.ts",
     "preview": "cd frontend && vite preview",
     "clean": "rm -rf frontend/dist",
-    "lint": "tsc --noEmit"
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -36,9 +37,14 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.21.0",
+    "globals": "^15.15.0",
+    "prettier": "^3.5.1",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
+    "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
   }
 }

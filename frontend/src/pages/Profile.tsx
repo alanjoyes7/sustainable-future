@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../../../database/firebase';
 import { Leaf, Recycle, Flame, Droplets, Award, Calendar, ScanLine } from 'lucide-react';
+import { getLocalScans } from '../lib/demoStorage';
 
 export default function Profile() {
   const { currentUser } = useAuth();
@@ -11,11 +12,24 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
+    if (!db) {
+      setScans(getLocalScans(currentUser.uid));
+      setLoading(false);
+      return;
+    }
+
     const q = query(collection(db, 'scans'), where('uid', '==', currentUser.uid), orderBy('timestamp', 'desc'));
     getDocs(q).then(snap => {
       setScans(snap.docs.map(d => d.data()));
-    }).catch(console.error).finally(() => setLoading(false));
+    }).catch((error) => {
+      console.error(error);
+      setScans(getLocalScans(currentUser.uid));
+    }).finally(() => setLoading(false));
   }, [currentUser]);
 
   const categoryCounts = scans.reduce((acc: any, s) => {

@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, googleProvider, db } from '../../../database/firebase';
+import { auth, googleProvider, db, isFirebaseConfigured } from '../../../database/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { 
-  signInWithPopup, 
-  signOut as firebaseSignOut, 
-  onAuthStateChanged, 
+import {
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth';
 import toast from 'react-hot-toast';
+import { clearStoredDemoUser, createDemoUser, getStoredDemoUser, setStoredDemoUser } from '../lib/demoStorage';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -31,6 +32,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth || !isFirebaseConfigured) {
+      const demoUser = getStoredDemoUser();
+      setCurrentUser((demoUser as User) || null);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
@@ -39,7 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveUserToDb = async (user: User) => {
-    if (!user) return;
+    if (!user || !db || !isFirebaseConfigured) return;
+
     const userRef = doc(db, 'users', user.uid);
     try {
       const userSnap = await getDoc(userRef);
@@ -54,11 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
     } catch (err) {
-      console.error("Error saving user to DB:", err);
+      console.error('Error saving user to DB:', err);
     }
   };
 
   const signInWithGoogle = async () => {
+    if (!auth || !googleProvider || !isFirebaseConfigured) {
+      const demoUser = createDemoUser();
+      setStoredDemoUser(demoUser);
+      setCurrentUser(demoUser as User);
+      toast.success('Demo mode enabled');
+      return;
+    }
+
     try {
       const res = await signInWithPopup(auth, googleProvider);
       await saveUserToDb(res.user);
@@ -70,8 +87,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signupWithEmail = async (email: string, pass: string) => {
+    if (!auth || !isFirebaseConfigured) {
+      const demoUser = createDemoUser(email, email.split('@')[0] || 'Demo Explorer');
+      setStoredDemoUser(demoUser);
+      setCurrentUser(demoUser as User);
+      toast.success('Demo account created');
+      return;
+    }
+
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, pass);
+      const res = await createUserWithEmailAndPassword(auth, pass ? email : email, pass);
       await saveUserToDb(res.user);
       toast.success('Account created successfully!');
     } catch (error: any) {
@@ -81,6 +106,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
+    if (!auth || !isFirebaseConfigured) {
+      const demoUser = createDemoUser(email, email.split('@')[0] || 'Demo Explorer');
+      setStoredDemoUser(demoUser);
+      setCurrentUser(demoUser as User);
+      toast.success('Signed in using demo mode');
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       toast.success('Successfully logged in!');
@@ -91,6 +124,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!auth || !isFirebaseConfigured) {
+      clearStoredDemoUser();
+      setCurrentUser(null);
+      toast.success('Exited demo mode');
+      return;
+    }
+
     try {
       await firebaseSignOut(auth);
       toast.success('Successfully logged out');

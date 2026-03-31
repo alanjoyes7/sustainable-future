@@ -4,7 +4,7 @@
 @theme {
   --font-headline: "Plus Jakarta Sans", sans-serif;
   --font-body: "Be Vietnam Pro", sans-serif;
-  
+
   --color-primary: #006e1c;
   --color-primary-container: #4caf50;
   --color-surface: #f8faf8;
@@ -13,23 +13,53 @@
   --color-on-surface-variant: #3f4a3c;
 }
 
+:root {
+  color-scheme: light;
+  --color-primary: #006e1c;
+  --color-primary-container: #4caf50;
+  --color-surface: #f8faf8;
+  --color-surface-container: #eceeec;
+  --color-on-surface: #191c1b;
+  --color-on-surface-variant: #3f4a3c;
+  --app-card: #ffffff;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #67db86;
+  --color-primary-container: #1f8b38;
+  --color-surface: #0f1511;
+  --color-surface-container: #17201a;
+  --color-on-surface: #eef6ee;
+  --color-on-surface-variant: #b7c7b8;
+  --app-card: #18221b;
+}
+
 @layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
     @apply font-body bg-surface text-on-surface;
+    min-height: 100vh;
+    transition: background-color 180ms ease, color 180ms ease;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
 }
 
 .glass-effect {
-  @apply backdrop-blur-xl bg-white/80 dark:bg-stone-900/80;
+  backdrop-filter: blur(24px);
+  background-color: color-mix(in srgb, var(--app-card) 82%, transparent);
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

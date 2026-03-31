@@ -1,26 +1,83 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Bell, Globe, Shield, Trash2, ChevronRight, Moon, Sun, LogOut } from 'lucide-react';
+import { Bell, Globe, Shield, Trash2, ChevronRight, Moon, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+const SETTINGS_STORAGE_KEY = 'biome.settings';
+
+type SettingsState = {
+  notifications: boolean;
+  darkMode: boolean;
+  saveHistory: boolean;
+};
+
+const defaultSettings: SettingsState = {
+  notifications: true,
+  darkMode: false,
+  saveHistory: true,
+};
+
+function loadStoredSettings(): SettingsState {
+  if (typeof window === 'undefined') return defaultSettings;
+
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    return raw ? { ...defaultSettings, ...JSON.parse(raw) } : defaultSettings;
+  } catch {
+    return defaultSettings;
+  }
+}
+
+function applyTheme(isDark: boolean) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+}
+
 export default function Settings() {
   const { currentUser, signOut } = useAuth();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [saveHistory, setSaveHistory] = useState(true);
+  const [settings, setSettings] = useState<SettingsState>(defaultSettings);
+
+  useEffect(() => {
+    const stored = loadStoredSettings();
+    setSettings(stored);
+    applyTheme(stored.darkMode);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    applyTheme(settings.darkMode);
+  }, [settings]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
   };
 
+  const updateSetting = (key: keyof SettingsState, value: boolean) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+
+    if (key === 'darkMode') {
+      toast.success(value ? 'Dark mode enabled' : 'Light mode enabled');
+    }
+
+    if (key === 'saveHistory') {
+      toast.success(value ? 'Scan history will be saved' : 'Scan history saving paused');
+    }
+  };
+
   const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
     <button
-      onClick={() => onChange(!value)}
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        onChange(!value);
+      }}
       className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${value ? 'bg-primary' : 'bg-surface-container-high'}`}
+      aria-pressed={value}
     >
       <motion.div
         animate={{ x: value ? 28 : 4 }}
@@ -37,28 +94,28 @@ export default function Settings() {
         {
           icon: Bell,
           label: 'Push Notifications',
-          description: 'Receive eco tips and reminders',
+          description: 'Receive eco tips and scan reminders',
           color: 'text-blue-600',
           bg: 'bg-blue-50',
-          control: <ToggleSwitch value={notifications} onChange={setNotifications} />
+          control: <ToggleSwitch value={settings.notifications} onChange={(value) => updateSetting('notifications', value)} />,
         },
         {
           icon: Moon,
           label: 'Dark Mode',
-          description: 'Switch to dark theme',
+          description: 'Use a softer night-friendly theme',
           color: 'text-purple-600',
           bg: 'bg-purple-50',
-          control: <ToggleSwitch value={darkMode} onChange={(v) => { setDarkMode(v); toast('Dark mode coming soon!', { icon: '🌙' }); }} />
+          control: <ToggleSwitch value={settings.darkMode} onChange={(value) => updateSetting('darkMode', value)} />,
         },
         {
           icon: Shield,
           label: 'Save Scan History',
-          description: 'Store your activity in the database',
+          description: 'Keep your classified items synced to your account',
           color: 'text-green-600',
           bg: 'bg-green-50',
-          control: <ToggleSwitch value={saveHistory} onChange={setSaveHistory} />
+          control: <ToggleSwitch value={settings.saveHistory} onChange={(value) => updateSetting('saveHistory', value)} />,
         },
-      ]
+      ],
     },
     {
       title: 'Account',
@@ -70,7 +127,7 @@ export default function Settings() {
           color: 'text-cyan-600',
           bg: 'bg-cyan-50',
           control: <ChevronRight className="w-5 h-5 text-on-surface-variant" />,
-          onClick: () => window.open('https://policies.google.com/privacy', '_blank')
+          onClick: () => window.open('https://policies.google.com/privacy', '_blank'),
         },
         {
           icon: Trash2,
@@ -79,10 +136,10 @@ export default function Settings() {
           color: 'text-red-600',
           bg: 'bg-red-50',
           control: <ChevronRight className="w-5 h-5 text-on-surface-variant" />,
-          onClick: () => toast.error('Please contact support to delete your account.')
+          onClick: () => toast.error('Please contact support to delete your account.'),
         },
-      ]
-    }
+      ],
+    },
   ];
 
   return (
@@ -96,7 +153,6 @@ export default function Settings() {
         <p className="text-on-surface-variant font-medium">Manage your preferences and account</p>
       </section>
 
-      {/* Account Summary Card */}
       <div className="bg-gradient-to-r from-primary/10 to-surface-container-low rounded-[2rem] p-6 flex items-center gap-5 border border-primary/10">
         <div className="w-16 h-16 rounded-[1.25rem] overflow-hidden border-2 border-white shadow-md">
           <img
@@ -116,10 +172,10 @@ export default function Settings() {
           <h2 className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-4 px-1">{section.title}</h2>
           <div className="bg-white rounded-[2rem] border border-outline-variant/10 shadow-sm overflow-hidden divide-y divide-outline-variant/10">
             {section.items.map((item) => (
-              <button
+              <div
                 key={item.label}
                 onClick={item.onClick}
-                className="w-full flex items-center gap-4 px-6 py-5 hover:bg-surface-container-lowest transition-colors text-left"
+                className={`w-full flex items-center gap-4 px-6 py-5 transition-colors text-left ${item.onClick ? 'hover:bg-surface-container-lowest cursor-pointer' : ''}`}
               >
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${item.bg}`}>
                   <item.icon className={`w-6 h-6 ${item.color}`} />
@@ -129,13 +185,12 @@ export default function Settings() {
                   <p className="text-xs text-on-surface-variant mt-0.5">{item.description}</p>
                 </div>
                 {item.control}
-              </button>
+              </div>
             ))}
           </div>
         </section>
       ))}
 
-      {/* Sign Out */}
       <section>
         <button
           onClick={handleSignOut}
@@ -146,9 +201,8 @@ export default function Settings() {
         </button>
       </section>
 
-      {/* Version */}
       <p className="text-center text-xs text-on-surface-variant/50 font-medium pb-4">
-        The Biome · v1.0.0 · Built for Hackathon 2026
+        The Biome · v1.1.0 · Refined for Hackathon 2026
       </p>
     </motion.div>
   );

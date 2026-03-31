@@ -6,6 +6,7 @@ import { db } from '../../../database/firebase';
 import { Leaf, Recycle, Flame, Trash2, Search, Filter, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { deleteLocalScan, getLocalScans } from '../lib/demoStorage';
 
 export default function History() {
   const { currentUser } = useAuth();
@@ -17,7 +18,17 @@ export default function History() {
   const [scanDocs, setScanDocs] = useState<any[]>([]);
 
   const fetchScans = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
+    if (!db) {
+      setScans(getLocalScans(currentUser.uid));
+      setLoading(false);
+      return;
+    }
+
     try {
       const q = query(collection(db, 'scans'), where('uid', '==', currentUser.uid), orderBy('timestamp', 'desc'));
       const snap = await getDocs(q);
@@ -25,6 +36,7 @@ export default function History() {
       setScans(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error(err);
+      setScans(getLocalScans(currentUser.uid));
     } finally {
       setLoading(false);
     }
@@ -33,12 +45,21 @@ export default function History() {
   useEffect(() => { fetchScans(); }, [currentUser]);
 
   const handleDelete = async (scanId: string) => {
+    if (!db) {
+      deleteLocalScan(scanId);
+      setScans(prev => prev.filter(s => s.id !== scanId));
+      toast.success('Scan deleted');
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, 'scans', scanId));
       setScans(prev => prev.filter(s => s.id !== scanId));
       toast.success('Scan deleted');
     } catch {
-      toast.error('Failed to delete scan');
+      deleteLocalScan(scanId);
+      setScans(prev => prev.filter(s => s.id !== scanId));
+      toast.success('Scan deleted locally');
     }
   };
 

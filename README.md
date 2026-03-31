@@ -10,11 +10,31 @@ View your app in AI Studio: https://ai.studio/apps/29be90f8-f3f2-4c3e-841f-a9e65
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the required keys in `.env.local`
 3. Run the app:
    `npm run dev`
+
+## Deploy on Render
+
+1. Push this repo to GitHub.
+2. In Render, create a **Web Service** from the repo.
+3. Use these settings:
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm start`
+4. Add these environment variables in Render:
+   - `GEMINI_API_KEY`
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID`
+   - `NODE_ENV=production`
+5. In Firebase Console, add your Render domain to **Authentication > Authorized domains**.
+
+The server now uses `process.env.PORT`, so it is ready for Render/Railway-style deployment.

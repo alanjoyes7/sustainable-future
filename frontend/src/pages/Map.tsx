@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Navigation, Recycle, Leaf, AlertTriangle, Loader2, X, MapPin } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 interface SearchResult {
   display_name: string;
@@ -22,10 +23,15 @@ interface Facility {
 }
 
 export default function MapPage() {
+  const location = useLocation();
+  const suggestedCategory = ['Recyclable', 'Organic', 'Hazardous'].includes(location.state?.category)
+    ? location.state.category
+    : 'All';
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState(suggestedCategory);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapUrl, setMapUrl] = useState('');
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
@@ -196,8 +202,15 @@ export default function MapPage() {
       {/* Bottom Sheet – Facility List */}
       <div className="absolute bottom-0 left-0 right-0 z-[400] bg-white/95 backdrop-blur-2xl rounded-t-3xl shadow-2xl border-t border-white/20 max-h-72 overflow-hidden">
         <div className="w-12 h-1.5 bg-surface-container-highest rounded-full mx-auto mt-3 mb-2" />
-        <div className="px-6 pb-2 flex items-center justify-between">
-          <h2 className="text-base font-extrabold text-on-surface">Nearby Disposal Points</h2>
+        <div className="px-6 pb-2 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-extrabold text-on-surface">Nearby Disposal Points</h2>
+            {location.state?.item && (
+              <p className="text-xs text-on-surface-variant mt-1">
+                Recommended for <span className="font-bold text-primary">{location.state.item}</span>
+              </p>
+            )}
+          </div>
           <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">{visibleFacilities.length} Found</span>
         </div>
         <div className="overflow-y-auto max-h-48 px-4 pb-4 space-y-3">

@@ -7,6 +7,21 @@ import { useAuth } from '../contexts/AuthContext';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../../database/firebase';
 import toast from 'react-hot-toast';
+import { saveLocalScan } from '../lib/demoStorage';
+
+const SETTINGS_STORAGE_KEY = 'biome.settings';
+
+function shouldSaveHistory() {
+  if (typeof window === 'undefined') return true;
+
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return true;
+    return JSON.parse(raw).saveHistory !== false;
+  } catch {
+    return true;
+  }
+}
 
 export default function Scanner() {
   const navigate = useNavigate();
@@ -54,15 +69,31 @@ export default function Scanner() {
 
   const saveToDb = async (result: any, method: 'image' | 'text' | 'camera') => {
     if (!currentUser || result.category === 'Unknown') return;
+
+    if (!shouldSaveHistory()) {
+      toast('Scan history is currently disabled in Settings.', { icon: '🛡️' });
+      return;
+    }
+
+    const payload = {
+      uid: currentUser.uid,
+      item: result.item,
+      category: result.category,
+      guidance: result.guidance,
+      inputMethod: method,
+      offlineMode: !!result.offlineMode,
+      rewardBadge: result.rewardBadge || null,
+      timestamp: new Date().toISOString()
+    };
+
+    saveLocalScan(payload);
+
+    if (!db) {
+      return;
+    }
+
     try {
-      await addDoc(collection(db, 'scans'), {
-        uid: currentUser.uid,
-        item: result.item,
-        category: result.category,
-        guidance: result.guidance,
-        inputMethod: method,
-        timestamp: new Date().toISOString()
-      });
+      await addDoc(collection(db, 'scans'), payload);
     } catch (err) {
       console.error('Failed to log scan:', err);
     }
@@ -81,11 +112,14 @@ export default function Scanner() {
     setIsScanning(true);
     try {
       const result = await classifyWaste({ data: base64Data, mimeType: 'image/jpeg' });
+      if (result.offlineMode) {
+        toast('Offline smart mode used cached waste rules.', { icon: '⚡' });
+      }
       await saveToDb(result, 'camera');
       navigate('/result', { state: { result, image: dataUrl } });
     } catch (error) {
       console.error('Classification failed:', error);
-      toast.error('Classification failed. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Classification failed. Please try again.');
       setIsScanning(false);
     }
   };
@@ -102,12 +136,17 @@ export default function Scanner() {
         const base64Data = dataUrl.split(',')[1];
         try {
           const result = await classifyWaste({ data: base64Data, mimeType: file.type });
+          if (result.offlineMode) {
+            toast('Offline smart mode used cached waste rules.', { icon: '⚡' });
+          }
           await saveToDb(result, 'image');
           navigate('/result', { state: { result, image: dataUrl } });
         } catch (error) {
           console.error('Classification failed:', error);
-          toast.error('Classification failed. Please try again.');
+          toast.error(error instanceof Error ? error.message : 'Classification failed. Please try again.');
           setIsScanning(false);
+        } finally {
+          e.target.value = '';
         }
       };
       reader.readAsDataURL(file);
@@ -124,11 +163,14 @@ export default function Scanner() {
     setIsScanning(true);
     try {
       const result = await classifyWaste(textInput);
+      if (result.offlineMode) {
+        toast('Offline smart mode matched this item locally.', { icon: '⚡' });
+      }
       await saveToDb(result, 'text');
       navigate('/result', { state: { result } });
     } catch (error) {
       console.error('Classification failed:', error);
-      toast.error('Classification failed. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Classification failed. Please try again.');
       setIsScanning(false);
     }
   };
@@ -145,6 +187,10 @@ export default function Scanner() {
         <p className="text-on-surface-variant font-medium">
           {cameraActive ? 'Live camera ready — point at any waste item' : 'Upload an image or describe the waste below'}
         </p>
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-bold text-primary">
+          <span>⚡</span>
+          AI + offline smart mode are both ready for your demo.
+        </div>
       </section>
 
       {/* Live Viewfinder */}
