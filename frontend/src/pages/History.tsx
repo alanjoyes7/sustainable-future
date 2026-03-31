@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, getDocs, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../database/firebase';
-import { Leaf, Recycle, Flame, Trash2, Search, Filter, ScanLine } from 'lucide-react';
+import { Leaf, Trash2, Search, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { deleteLocalScan, getLocalScans } from '../lib/demoStorage';
@@ -15,7 +15,6 @@ export default function History() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
-  const [scanDocs, setScanDocs] = useState<any[]>([]);
 
   const fetchScans = async () => {
     if (!currentUser) {
@@ -30,10 +29,13 @@ export default function History() {
     }
 
     try {
-      const q = query(collection(db, 'scans'), where('uid', '==', currentUser.uid), orderBy('timestamp', 'desc'));
+      const q = query(
+        collection(db, 'scans'),
+        where('uid', '==', currentUser.uid),
+        orderBy('timestamp', 'desc')
+      );
       const snap = await getDocs(q);
-      setScanDocs(snap.docs);
-      setScans(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setScans(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error(err);
       setScans(getLocalScans(currentUser.uid));
@@ -42,30 +44,32 @@ export default function History() {
     }
   };
 
-  useEffect(() => { fetchScans(); }, [currentUser]);
+  useEffect(() => {
+    fetchScans();
+  }, [currentUser]);
 
   const handleDelete = async (scanId: string) => {
     if (!db) {
       deleteLocalScan(scanId);
-      setScans(prev => prev.filter(s => s.id !== scanId));
+      setScans((prev) => prev.filter((s) => s.id !== scanId));
       toast.success('Scan deleted');
       return;
     }
 
     try {
       await deleteDoc(doc(db, 'scans', scanId));
-      setScans(prev => prev.filter(s => s.id !== scanId));
+      setScans((prev) => prev.filter((s) => s.id !== scanId));
       toast.success('Scan deleted');
     } catch {
       deleteLocalScan(scanId);
-      setScans(prev => prev.filter(s => s.id !== scanId));
+      setScans((prev) => prev.filter((s) => s.id !== scanId));
       toast.success('Scan deleted locally');
     }
   };
 
   const filteredScans = scans
-    .filter(s => filterCategory === 'All' || s.category === filterCategory)
-    .filter(s => !search || s.item?.toLowerCase().includes(search.toLowerCase()));
+    .filter((s) => filterCategory === 'All' || s.category === filterCategory)
+    .filter((s) => !search || s.item?.toLowerCase().includes(search.toLowerCase()));
 
   const categories = ['All', 'Recyclable', 'Organic', 'Hazardous', 'Non-Recyclable'];
 
@@ -80,32 +84,34 @@ export default function History() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-3xl mx-auto space-y-8"
+      className="mx-auto max-w-3xl space-y-8"
     >
       <section>
-        <h1 className="text-4xl font-extrabold text-on-surface mb-2">Scan History</h1>
+        <h1 className="text-on-surface mb-2 text-4xl font-extrabold">Scan History</h1>
         <p className="text-on-surface-variant font-medium">All your classified waste items</p>
       </section>
 
       {/* Search + Filter */}
       <div className="space-y-4">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
+          <Search className="text-on-surface-variant absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
           <input
             type="text"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search your scans..."
-            className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-outline-variant/10 font-medium text-on-surface outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
+            className="border-outline-variant/10 text-on-surface focus:ring-primary/20 w-full rounded-2xl border bg-white py-4 pr-4 pl-12 font-medium shadow-sm outline-none focus:ring-2"
           />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full font-bold text-xs transition-all active:scale-95 ${
-                filterCategory === cat ? 'bg-primary text-white shadow-md' : 'bg-white text-green-900 border border-outline-variant/10'
+              className={`flex-shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all active:scale-95 ${
+                filterCategory === cat
+                  ? 'bg-primary text-white shadow-md'
+                  : 'border-outline-variant/10 border bg-white text-green-900'
               }`}
             >
               {cat}
@@ -116,31 +122,37 @@ export default function History() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl p-4 text-center border border-outline-variant/10 shadow-sm">
-          <p className="text-2xl font-extrabold text-primary">{scans.length}</p>
-          <p className="text-xs text-on-surface-variant font-bold mt-1">Total Scans</p>
+        <div className="border-outline-variant/10 rounded-2xl border bg-white p-4 text-center shadow-sm">
+          <p className="text-primary text-2xl font-extrabold">{scans.length}</p>
+          <p className="text-on-surface-variant mt-1 text-xs font-bold">Total Scans</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 text-center border border-outline-variant/10 shadow-sm">
-          <p className="text-2xl font-extrabold text-blue-600">{scans.filter(s => s.category === 'Recyclable').length}</p>
-          <p className="text-xs text-on-surface-variant font-bold mt-1">Recyclable</p>
+        <div className="border-outline-variant/10 rounded-2xl border bg-white p-4 text-center shadow-sm">
+          <p className="text-2xl font-extrabold text-blue-600">
+            {scans.filter((s) => s.category === 'Recyclable').length}
+          </p>
+          <p className="text-on-surface-variant mt-1 text-xs font-bold">Recyclable</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 text-center border border-outline-variant/10 shadow-sm">
-          <p className="text-2xl font-extrabold text-green-600">{scans.filter(s => s.category === 'Organic').length}</p>
-          <p className="text-xs text-on-surface-variant font-bold mt-1">Organic</p>
+        <div className="border-outline-variant/10 rounded-2xl border bg-white p-4 text-center shadow-sm">
+          <p className="text-2xl font-extrabold text-green-600">
+            {scans.filter((s) => s.category === 'Organic').length}
+          </p>
+          <p className="text-on-surface-variant mt-1 text-xs font-bold">Organic</p>
         </div>
       </div>
 
       {/* List */}
       {loading ? (
-        <div className="text-center py-20 text-on-surface-variant">Loading history...</div>
+        <div className="text-on-surface-variant py-20 text-center">Loading history...</div>
       ) : filteredScans.length === 0 ? (
-        <div className="text-center py-20 bg-surface-container-low rounded-[2rem] border border-outline-variant/10">
-          <ScanLine className="w-14 h-14 text-on-surface-variant mx-auto mb-4" />
-          <h3 className="font-extrabold text-xl text-on-surface mb-2">No scans found</h3>
-          <p className="text-on-surface-variant mb-6">Try a different filter or start scanning waste!</p>
+        <div className="bg-surface-container-low border-outline-variant/10 rounded-[2rem] border py-20 text-center">
+          <ScanLine className="text-on-surface-variant mx-auto mb-4 h-14 w-14" />
+          <h3 className="text-on-surface mb-2 text-xl font-extrabold">No scans found</h3>
+          <p className="text-on-surface-variant mb-6">
+            Try a different filter or start scanning waste!
+          </p>
           <button
             onClick={() => navigate('/scanner')}
-            className="px-8 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-md active:scale-95 transition-transform"
+            className="bg-primary rounded-full px-8 py-3 text-sm font-bold text-white shadow-md transition-transform active:scale-95"
           >
             Go to Scanner
           </button>
@@ -155,25 +167,32 @@ export default function History() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ delay: i * 0.03 }}
-                className="flex items-center gap-4 bg-white p-5 rounded-[1.5rem] border border-outline-variant/10 shadow-sm hover:shadow-md transition-shadow group"
+                className="border-outline-variant/10 group flex items-center gap-4 rounded-[1.5rem] border bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Leaf className="w-6 h-6 text-primary" />
+                <div className="bg-primary/10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl">
+                  <Leaf className="text-primary h-6 w-6" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-on-surface truncate">{scan.item}</p>
-                  <p className="text-xs text-on-surface-variant mt-0.5">
-                    {new Date(scan.timestamp).toLocaleString()} · {scan.inputMethod === 'camera' ? '📸 Camera' : scan.inputMethod === 'image' ? '🖼️ Upload' : '✏️ Text'}
+                <div className="min-w-0 flex-1">
+                  <p className="text-on-surface truncate font-bold">{scan.item}</p>
+                  <p className="text-on-surface-variant mt-0.5 text-xs">
+                    {new Date(scan.timestamp).toLocaleString()} ·{' '}
+                    {scan.inputMethod === 'camera'
+                      ? '📸 Camera'
+                      : scan.inputMethod === 'image'
+                        ? '🖼️ Upload'
+                        : '✏️ Text'}
                   </p>
                 </div>
-                <span className={`hidden sm:inline-flex px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex-shrink-0 ${categoryStyle[scan.category] || 'bg-surface-container text-on-surface-variant'}`}>
+                <span
+                  className={`hidden flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-black tracking-wider uppercase sm:inline-flex ${categoryStyle[scan.category] || 'bg-surface-container text-on-surface-variant'}`}
+                >
                   {scan.category}
                 </span>
                 <button
                   onClick={() => handleDelete(scan.id)}
-                  className="opacity-0 group-hover:opacity-100 p-2 rounded-xl hover:bg-red-50 text-red-500 transition-all flex-shrink-0"
+                  className="flex-shrink-0 rounded-xl p-2 text-red-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-50"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </motion.div>
             ))}

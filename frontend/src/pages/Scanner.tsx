@@ -38,8 +38,8 @@ export default function Scanner() {
   const startCamera = useCallback(async () => {
     setCameraError('');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -48,14 +48,15 @@ export default function Scanner() {
       }
       setCameraActive(true);
     } catch (err: any) {
-      setCameraError("Camera access denied. Please allow camera permissions or use file upload.");
+      console.error('Camera access error:', err);
+      setCameraError('Camera access denied. Please allow camera permissions or use file upload.');
       setCameraActive(false);
     }
   }, []);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -83,7 +84,7 @@ export default function Scanner() {
       inputMethod: method,
       offlineMode: !!result.offlineMode,
       rewardBadge: result.rewardBadge || null,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     saveLocalScan(payload);
@@ -119,7 +120,9 @@ export default function Scanner() {
       navigate('/result', { state: { result, image: dataUrl } });
     } catch (error) {
       console.error('Classification failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Classification failed. Please try again.');
+      toast.error(
+        error instanceof Error ? error.message : 'Classification failed. Please try again.'
+      );
       setIsScanning(false);
     }
   };
@@ -143,7 +146,9 @@ export default function Scanner() {
           navigate('/result', { state: { result, image: dataUrl } });
         } catch (error) {
           console.error('Classification failed:', error);
-          toast.error(error instanceof Error ? error.message : 'Classification failed. Please try again.');
+          toast.error(
+            error instanceof Error ? error.message : 'Classification failed. Please try again.'
+          );
           setIsScanning(false);
         } finally {
           e.target.value = '';
@@ -170,55 +175,59 @@ export default function Scanner() {
       navigate('/result', { state: { result } });
     } catch (error) {
       console.error('Classification failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Classification failed. Please try again.');
+      toast.error(
+        error instanceof Error ? error.message : 'Classification failed. Please try again.'
+      );
       setIsScanning(false);
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col max-w-2xl mx-auto w-full"
+      className="mx-auto flex w-full max-w-2xl flex-col"
     >
       {/* Header */}
       <section className="mb-8">
-        <h2 className="text-4xl font-bold tracking-tight mb-2">Scanner</h2>
+        <h2 className="mb-2 text-4xl font-bold tracking-tight">Scanner</h2>
         <p className="text-on-surface-variant font-medium">
-          {cameraActive ? 'Live camera ready — point at any waste item' : 'Upload an image or describe the waste below'}
+          {cameraActive
+            ? 'Live camera ready — point at any waste item'
+            : 'Upload an image or describe the waste below'}
         </p>
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-bold text-primary">
+        <div className="border-primary/20 bg-primary/5 text-primary mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold">
           <span>⚡</span>
           AI + offline smart mode are both ready for your demo.
         </div>
       </section>
 
       {/* Live Viewfinder */}
-      <section className="relative aspect-[4/3] w-full rounded-3xl overflow-hidden bg-black mb-8 shadow-2xl">
+      <section className="relative mb-8 aspect-[4/3] w-full overflow-hidden rounded-3xl bg-black shadow-2xl">
         {/* Video Element */}
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          playsInline 
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
           muted
-          className={`w-full h-full object-cover ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
+          className={`h-full w-full object-cover ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
         />
         <canvas ref={canvasRef} className="hidden" />
 
         {/* Camera Error / Fallback */}
         {!cameraActive && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-surface-container-high">
-            <div className="p-6 rounded-3xl bg-surface-container">
-              <CameraOff className="w-16 h-16 text-on-surface-variant mx-auto mb-3" />
-              <p className="text-on-surface-variant text-sm text-center font-medium max-w-xs">
+          <div className="bg-surface-container-high absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <div className="bg-surface-container rounded-3xl p-6">
+              <CameraOff className="text-on-surface-variant mx-auto mb-3 h-16 w-16" />
+              <p className="text-on-surface-variant max-w-xs text-center text-sm font-medium">
                 {cameraError || 'Camera not available'}
               </p>
             </div>
-            <button 
+            <button
               onClick={startCamera}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-bold text-sm active:scale-95 transition-transform shadow-md"
+              className="bg-primary flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-md transition-transform active:scale-95"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="h-4 w-4" />
               Retry Camera
             </button>
           </div>
@@ -226,19 +235,19 @@ export default function Scanner() {
 
         {/* Scan Overlay */}
         {cameraActive && (
-          <div className="absolute inset-0 p-8 flex flex-col justify-between pointer-events-none">
+          <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-8">
             <div className="flex justify-between">
-              <div className="w-10 h-10 border-t-4 border-l-4 border-white rounded-tl-xl opacity-80" />
-              <div className="w-10 h-10 border-t-4 border-r-4 border-white rounded-tr-xl opacity-80" />
+              <div className="h-10 w-10 rounded-tl-xl border-t-4 border-l-4 border-white opacity-80" />
+              <div className="h-10 w-10 rounded-tr-xl border-t-4 border-r-4 border-white opacity-80" />
             </div>
-            <motion.div 
+            <motion.div
               animate={{ top: ['10%', '90%', '10%'] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_#4caf50]"
+              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+              className="via-primary absolute right-0 left-0 h-[2px] bg-gradient-to-r from-transparent to-transparent shadow-[0_0_12px_#4caf50]"
             />
             <div className="flex justify-between">
-              <div className="w-10 h-10 border-b-4 border-l-4 border-white rounded-bl-xl opacity-80" />
-              <div className="w-10 h-10 border-b-4 border-r-4 border-white rounded-br-xl opacity-80" />
+              <div className="h-10 w-10 rounded-bl-xl border-b-4 border-l-4 border-white opacity-80" />
+              <div className="h-10 w-10 rounded-br-xl border-r-4 border-b-4 border-white opacity-80" />
             </div>
           </div>
         )}
@@ -246,15 +255,15 @@ export default function Scanner() {
         {/* Loading Overlay */}
         <AnimatePresence>
           {isScanning && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center text-white z-20"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 text-white backdrop-blur-sm"
             >
-              <Loader2 className="w-14 h-14 animate-spin mb-4 text-primary" />
+              <Loader2 className="text-primary mb-4 h-14 w-14 animate-spin" />
               <p className="text-2xl font-bold">Classifying...</p>
-              <p className="text-sm opacity-70 mt-2">Gemini AI is analyzing the waste</p>
+              <p className="mt-2 text-sm opacity-70">Gemini AI is analyzing the waste</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -263,47 +272,47 @@ export default function Scanner() {
       {/* Action Buttons */}
       <section className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <button 
+          <button
             onClick={handleCapture}
             disabled={!cameraActive || isScanning}
-            className="flex flex-col items-center justify-center gap-2 py-6 rounded-3xl bg-gradient-to-br from-primary to-primary-container text-white transition-all active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-primary/20"
+            className="from-primary to-primary-container hover:shadow-primary/20 flex flex-col items-center justify-center gap-2 rounded-3xl bg-gradient-to-br py-6 text-white shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Camera className="w-8 h-8" />
+            <Camera className="h-8 w-8" />
             <span className="text-sm font-bold">Capture & Scan</span>
           </button>
-          <button 
+          <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isScanning}
-            className="flex flex-col items-center justify-center gap-2 py-6 rounded-3xl bg-surface-container-low text-green-900 hover:bg-green-50 transition-all active:scale-95 disabled:opacity-50"
+            className="bg-surface-container-low flex flex-col items-center justify-center gap-2 rounded-3xl py-6 text-green-900 transition-all hover:bg-green-50 active:scale-95 disabled:opacity-50"
           >
-            <Upload className="w-8 h-8 text-green-800" />
+            <Upload className="h-8 w-8 text-green-800" />
             <span className="text-sm font-bold">Upload Image</span>
           </button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept="image/*" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
             onChange={handleFileUpload}
           />
         </div>
 
         {/* Text Input */}
         <form onSubmit={handleTextSubmit} className="relative">
-          <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-            <Edit3 className="w-5 h-5 text-on-surface-variant" />
+          <div className="pointer-events-none absolute inset-y-0 left-5 flex items-center">
+            <Edit3 className="text-on-surface-variant h-5 w-5" />
           </div>
-          <input 
+          <input
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
-            className="w-full pl-14 pr-28 py-4 rounded-full bg-surface-container-highest border-none focus:ring-2 focus:ring-primary/20 text-on-surface font-medium placeholder:text-on-surface-variant/60 outline-none" 
-            placeholder="Or describe the waste..." 
+            className="bg-surface-container-highest focus:ring-primary/20 text-on-surface placeholder:text-on-surface-variant/60 w-full rounded-full border-none py-4 pr-28 pl-14 font-medium outline-none focus:ring-2"
+            placeholder="Or describe the waste..."
             type="text"
           />
-          <button 
+          <button
             type="submit"
             disabled={!textInput.trim() || isScanning}
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2.5 rounded-full bg-primary text-white text-sm font-bold disabled:opacity-40 transition-all active:scale-95"
+            className="bg-primary absolute top-1/2 right-2 -translate-y-1/2 rounded-full px-5 py-2.5 text-sm font-bold text-white transition-all active:scale-95 disabled:opacity-40"
           >
             Classify
           </button>
@@ -311,14 +320,15 @@ export default function Scanner() {
       </section>
 
       {/* Eco Tip */}
-      <section className="mt-10 p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 flex gap-4 items-start">
-        <div className="p-3 rounded-full bg-primary/10 text-primary">
-          <Lightbulb className="w-6 h-6" />
+      <section className="bg-surface-container-low border-outline-variant/10 mt-10 flex items-start gap-4 rounded-3xl border p-6">
+        <div className="bg-primary/10 text-primary rounded-full p-3">
+          <Lightbulb className="h-6 w-6" />
         </div>
         <div>
-          <h4 className="font-bold text-on-surface mb-1">Eco Tip</h4>
-          <p className="text-sm text-on-surface-variant leading-relaxed">
-            Rinsing food containers before scanning increases classification accuracy and prepares them for recycling.
+          <h4 className="text-on-surface mb-1 font-bold">Eco Tip</h4>
+          <p className="text-on-surface-variant text-sm leading-relaxed">
+            Rinsing food containers before scanning increases classification accuracy and prepares
+            them for recycling.
           </p>
         </div>
       </section>

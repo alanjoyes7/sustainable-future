@@ -25,7 +25,9 @@ export default function AuthPage() {
       }
       navigate(from, { replace: true });
     } catch (error) {
-       // toast already handled in context
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      console.error('Auth error:', error);
+      // toast already handled in context
     }
   };
 
@@ -34,17 +36,10 @@ export default function AuthPage() {
       await signInWithGoogle();
       navigate(from, { replace: true });
     } catch (error) {
-       // toast handled
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-surface-container-lowest">
-      {/* Background Decor */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-primary-container/20 rounded-full blur-3xl pointer-events-none" />
-
-      <motion.div 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      console.error('Google sign-in error:', error);
+      // toast handled
+    } 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white p-8 rounded-[2.5rem] shadow-2xl border border-outline-variant/10 z-10"

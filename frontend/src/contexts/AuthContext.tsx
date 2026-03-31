@@ -7,18 +7,23 @@ import {
   onAuthStateChanged,
   User,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 import toast from 'react-hot-toast';
-import { clearStoredDemoUser, createDemoUser, getStoredDemoUser, setStoredDemoUser } from '../lib/demoStorage';
+import {
+  clearStoredDemoUser,
+  createDemoUser,
+  getStoredDemoUser,
+  setStoredDemoUser,
+} from '../lib/demoStorage';
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  signupWithEmail: (email: string, pass: string) => Promise<void>;
-  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  signupWithEmail: (_email: string, _pass: string) => Promise<void>;
+  loginWithEmail: (_email: string, _pass: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -59,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           displayName: user.displayName || 'Eco Explorer',
           photoURL: user.photoURL || '',
           impactScore: 0,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         });
       }
     } catch (err) {
@@ -96,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await createUserWithEmailAndPassword(auth, pass ? email : email, pass);
+      const res = await createUserWithEmailAndPassword(auth, email, pass);
       await saveUserToDb(res.user);
       toast.success('Account created successfully!');
     } catch (error: any) {
@@ -135,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await firebaseSignOut(auth);
       toast.success('Successfully logged out');
     } catch (error: any) {
+      console.error('Logout error:', error);
       toast.error('Failed to log out');
     }
   };
@@ -145,12 +151,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signOut,
     signupWithEmail,
-    loginWithEmail
+    loginWithEmail,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }

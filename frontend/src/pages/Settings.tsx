@@ -69,20 +69,25 @@ export default function Settings() {
     }
   };
 
-  const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
+  const ToggleSwitch = ({
+    value,
+    onChange,
+  }: {
+    value: boolean;
+    onChange: (_v: boolean) => void;
+  }) => (
     <button
       type="button"
-      onClick={(event) => {
-        event.stopPropagation();
+      onClick={() => {
         onChange(!value);
       }}
-      className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${value ? 'bg-primary' : 'bg-surface-container-high'}`}
+      className={`relative h-7 w-14 rounded-full transition-colors duration-200 ${value ? 'bg-primary' : 'bg-surface-container-high'}`}
       aria-pressed={value}
     >
       <motion.div
         animate={{ x: value ? 28 : 4 }}
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
+        className="absolute top-1 h-5 w-5 rounded-full bg-white shadow-md"
       />
     </button>
   );
@@ -97,7 +102,12 @@ export default function Settings() {
           description: 'Receive eco tips and scan reminders',
           color: 'text-blue-600',
           bg: 'bg-blue-50',
-          control: <ToggleSwitch value={settings.notifications} onChange={(value) => updateSetting('notifications', value)} />,
+          control: (
+            <ToggleSwitch
+              value={settings.notifications}
+              onChange={(value) => updateSetting('notifications', value)}
+            />
+          ),
         },
         {
           icon: Moon,
@@ -105,7 +115,12 @@ export default function Settings() {
           description: 'Use a softer night-friendly theme',
           color: 'text-purple-600',
           bg: 'bg-purple-50',
-          control: <ToggleSwitch value={settings.darkMode} onChange={(value) => updateSetting('darkMode', value)} />,
+          control: (
+            <ToggleSwitch
+              value={settings.darkMode}
+              onChange={(value) => updateSetting('darkMode', value)}
+            />
+          ),
         },
         {
           icon: Shield,
@@ -113,7 +128,12 @@ export default function Settings() {
           description: 'Keep your classified items synced to your account',
           color: 'text-green-600',
           bg: 'bg-green-50',
-          control: <ToggleSwitch value={settings.saveHistory} onChange={(value) => updateSetting('saveHistory', value)} />,
+          control: (
+            <ToggleSwitch
+              value={settings.saveHistory}
+              onChange={(value) => updateSetting('saveHistory', value)}
+            />
+          ),
         },
       ],
     },
@@ -126,7 +146,7 @@ export default function Settings() {
           description: 'View our data & privacy terms',
           color: 'text-cyan-600',
           bg: 'bg-cyan-50',
-          control: <ChevronRight className="w-5 h-5 text-on-surface-variant" />,
+          control: <ChevronRight className="text-on-surface-variant h-5 w-5" />,
           onClick: () => window.open('https://policies.google.com/privacy', '_blank'),
         },
         {
@@ -135,7 +155,7 @@ export default function Settings() {
           description: 'Permanently remove your data',
           color: 'text-red-600',
           bg: 'bg-red-50',
-          control: <ChevronRight className="w-5 h-5 text-on-surface-variant" />,
+          control: <ChevronRight className="text-on-surface-variant h-5 w-5" />,
           onClick: () => toast.error('Please contact support to delete your account.'),
         },
       ],
@@ -146,43 +166,52 @@ export default function Settings() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto space-y-10"
+      className="mx-auto max-w-2xl space-y-10"
     >
       <section>
-        <h1 className="text-4xl font-extrabold text-on-surface mb-2">Settings</h1>
+        <h1 className="text-on-surface mb-2 text-4xl font-extrabold">Settings</h1>
         <p className="text-on-surface-variant font-medium">Manage your preferences and account</p>
       </section>
 
-      <div className="bg-gradient-to-r from-primary/10 to-surface-container-low rounded-[2rem] p-6 flex items-center gap-5 border border-primary/10">
-        <div className="w-16 h-16 rounded-[1.25rem] overflow-hidden border-2 border-white shadow-md">
+      <div className="from-primary/10 to-surface-container-low border-primary/10 flex items-center gap-5 rounded-[2rem] border bg-gradient-to-r p-6">
+        <div className="h-16 w-16 overflow-hidden rounded-[1.25rem] border-2 border-white shadow-md">
           <img
-            src={currentUser?.photoURL || `https://api.dicebear.com/7.x/identicon/svg?seed=${currentUser?.email}`}
+            src={
+              currentUser?.photoURL ||
+              `https://api.dicebear.com/7.x/identicon/svg?seed=${currentUser?.email}`
+            }
             alt="Profile"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         </div>
         <div>
-          <p className="font-extrabold text-lg text-on-surface">{currentUser?.displayName || 'Eco Explorer'}</p>
-          <p className="text-sm text-on-surface-variant font-medium">{currentUser?.email}</p>
+          <p className="text-on-surface text-lg font-extrabold">
+            {currentUser?.displayName || 'Eco Explorer'}
+          </p>
+          <p className="text-on-surface-variant text-sm font-medium">{currentUser?.email}</p>
         </div>
       </div>
 
       {sections.map((section) => (
         <section key={section.title}>
-          <h2 className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-4 px-1">{section.title}</h2>
-          <div className="bg-white rounded-[2rem] border border-outline-variant/10 shadow-sm overflow-hidden divide-y divide-outline-variant/10">
+          <h2 className="text-on-surface-variant mb-4 px-1 text-xs font-black tracking-widest uppercase">
+            {section.title}
+          </h2>
+          <div className="border-outline-variant/10 divide-outline-variant/10 divide-y overflow-hidden rounded-[2rem] border bg-white shadow-sm">
             {section.items.map((item) => (
               <div
                 key={item.label}
                 onClick={item.onClick}
-                className={`w-full flex items-center gap-4 px-6 py-5 transition-colors text-left ${item.onClick ? 'hover:bg-surface-container-lowest cursor-pointer' : ''}`}
+                className={`flex w-full items-center gap-4 px-6 py-5 text-left transition-colors ${item.onClick ? 'hover:bg-surface-container-lowest cursor-pointer' : ''}`}
               >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${item.bg}`}>
-                  <item.icon className={`w-6 h-6 ${item.color}`} />
+                <div
+                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${item.bg}`}
+                >
+                  <item.icon className={`h-6 w-6 ${item.color}`} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-on-surface text-sm">{item.label}</p>
-                  <p className="text-xs text-on-surface-variant mt-0.5">{item.description}</p>
+                  <p className="text-on-surface text-sm font-bold">{item.label}</p>
+                  <p className="text-on-surface-variant mt-0.5 text-xs">{item.description}</p>
                 </div>
                 {item.control}
               </div>
@@ -194,14 +223,14 @@ export default function Settings() {
       <section>
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center justify-center gap-3 py-5 rounded-[2rem] bg-red-50 text-red-600 border border-red-200 font-extrabold text-base hover:bg-red-600 hover:text-white transition-all duration-200 active:scale-95 shadow-sm"
+          className="flex w-full items-center justify-center gap-3 rounded-[2rem] border border-red-200 bg-red-50 py-5 text-base font-extrabold text-red-600 shadow-sm transition-all duration-200 hover:bg-red-600 hover:text-white active:scale-95"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="h-5 w-5" />
           Sign Out
         </button>
       </section>
 
-      <p className="text-center text-xs text-on-surface-variant/50 font-medium pb-4">
+      <p className="text-on-surface-variant/50 pb-4 text-center text-xs font-medium">
         The Biome · v1.1.0 · Refined for Hackathon 2026
       </p>
     </motion.div>

@@ -24,7 +24,9 @@ interface Facility {
 
 export default function MapPage() {
   const location = useLocation();
-  const suggestedCategory = ['Recyclable', 'Organic', 'Hazardous'].includes(location.state?.category)
+  const suggestedCategory = ['Recyclable', 'Organic', 'Hazardous'].includes(
+    location.state?.category
+  )
     ? location.state.category
     : 'All';
 
@@ -46,14 +48,14 @@ export default function MapPage() {
         updateMapUrl(loc.lat, loc.lng);
       },
       () => {
-        const defaultLoc = { lat: 28.6139, lng: 77.2090 }; // New Delhi
+        const defaultLoc = { lat: 28.6139, lng: 77.209 }; // New Delhi
         setMapCenter(defaultLoc);
         updateMapUrl(defaultLoc.lat, defaultLoc.lng);
       }
     );
   }, []);
 
-  const updateMapUrl = (lat: number, lng: number, zoom = 15) => {
+  const updateMapUrl = (lat: number, lng: number) => {
     setMapUrl(
       `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.03},${lat - 0.02},${lng + 0.03},${lat + 0.02}&layer=mapnik&marker=${lat},${lng}`
     );
@@ -93,17 +95,62 @@ export default function MapPage() {
   };
 
   const getFacilities = (lat: number, lng: number): Facility[] => [
-    { name: 'GreenCycle Recycling Hub', type: 'Recyclable', status: 'Open until 8:00 PM', distance: '0.8 km', color: 'text-green-700', bg: 'bg-green-50', icon: Recycle, lat: lat + 0.006, lng: lng + 0.005 },
-    { name: 'Organic Compost Station', type: 'Organic', status: 'Self-service 24/7', distance: '1.2 km', color: 'text-emerald-700', bg: 'bg-emerald-50', icon: Leaf, lat: lat - 0.008, lng: lng + 0.003 },
-    { name: 'HazMat Disposal Point', type: 'Hazardous', status: 'By appointment only', distance: '2.4 km', color: 'text-red-700', bg: 'bg-red-50', icon: AlertTriangle, lat: lat + 0.002, lng: lng - 0.012 },
-    { name: 'City Recycling Center', type: 'Recyclable', status: 'Open until 6:00 PM', distance: '3.1 km', color: 'text-green-700', bg: 'bg-green-50', icon: Recycle, lat: lat + 0.014, lng: lng - 0.007 },
+    {
+      name: 'GreenCycle Recycling Hub',
+      type: 'Recyclable',
+      status: 'Open until 8:00 PM',
+      distance: '0.8 km',
+      color: 'text-green-700',
+      bg: 'bg-green-50',
+      icon: Recycle,
+      lat: lat + 0.006,
+      lng: lng + 0.005,
+    },
+    {
+      name: 'Organic Compost Station',
+      type: 'Organic',
+      status: 'Self-service 24/7',
+      distance: '1.2 km',
+      color: 'text-emerald-700',
+      bg: 'bg-emerald-50',
+      icon: Leaf,
+      lat: lat - 0.008,
+      lng: lng + 0.003,
+    },
+    {
+      name: 'HazMat Disposal Point',
+      type: 'Hazardous',
+      status: 'By appointment only',
+      distance: '2.4 km',
+      color: 'text-red-700',
+      bg: 'bg-red-50',
+      icon: AlertTriangle,
+      lat: lat + 0.002,
+      lng: lng - 0.012,
+    },
+    {
+      name: 'City Recycling Center',
+      type: 'Recyclable',
+      status: 'Open until 6:00 PM',
+      distance: '3.1 km',
+      color: 'text-green-700',
+      bg: 'bg-green-50',
+      icon: Recycle,
+      lat: lat + 0.014,
+      lng: lng - 0.007,
+    },
   ];
 
   const facilities = mapCenter ? getFacilities(mapCenter.lat, mapCenter.lng) : [];
-  const visibleFacilities = facilities.filter(f => activeFilter === 'All' || f.type === activeFilter);
+  const visibleFacilities = facilities.filter(
+    (f) => activeFilter === 'All' || f.type === activeFilter
+  );
 
   const navigateTo = (facility: Facility) => {
-    window.open(`https://www.openstreetmap.org/directions?from=${mapCenter?.lat},${mapCenter?.lng}&to=${facility.lat},${facility.lng}`, '_blank');
+    window.open(
+      `https://www.openstreetmap.org/directions?from=${mapCenter?.lat},${mapCenter?.lng}&to=${facility.lat},${facility.lng}`,
+      '_blank'
+    );
   };
 
   const filters = [
@@ -114,26 +161,31 @@ export default function MapPage() {
   ];
 
   return (
-    <div className="relative flex flex-col h-[calc(100vh-7rem)] overflow-hidden rounded-[2rem]">
-
+    <div className="relative flex h-[calc(100vh-7rem)] flex-col overflow-hidden rounded-[2rem]">
       {/* Search Bar Overlay */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] w-full max-w-xl px-4">
+      <div className="absolute top-4 left-1/2 z-[500] w-full max-w-xl -translate-x-1/2 px-4">
         <div className="relative">
-          <div className="flex items-center bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 overflow-visible">
-            <div className="pl-4 pr-2 flex-shrink-0">
-              <Search className="w-5 h-5 text-green-700" />
+          <div className="flex items-center overflow-visible rounded-2xl border border-white/30 bg-white/95 shadow-2xl backdrop-blur-xl">
+            <div className="flex-shrink-0 pr-2 pl-4">
+              <Search className="h-5 w-5 text-green-700" />
             </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search location (e.g. Delhi, Mumbai...)"
-              className="flex-1 py-4 pr-4 bg-transparent text-on-surface font-medium placeholder:text-on-surface-variant/60 outline-none text-sm"
+              className="text-on-surface placeholder:text-on-surface-variant/60 flex-1 bg-transparent py-4 pr-4 text-sm font-medium outline-none"
             />
-            {isSearching && <Loader2 className="w-4 h-4 animate-spin text-primary mr-3" />}
+            {isSearching && <Loader2 className="text-primary mr-3 h-4 w-4 animate-spin" />}
             {searchQuery && !isSearching && (
-              <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} className="mr-3">
-                <X className="w-4 h-4 text-on-surface-variant" />
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSearchResults([]);
+                }}
+                className="mr-3"
+              >
+                <X className="text-on-surface-variant h-4 w-4" />
               </button>
             )}
           </div>
@@ -145,16 +197,16 @@ export default function MapPage() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-2xl overflow-hidden border border-outline-variant/10 z-50"
+                className="border-outline-variant/10 absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-2xl border bg-white shadow-2xl"
               >
                 {searchResults.map((result) => (
                   <button
                     key={result.place_id}
                     onClick={() => handleSelectResult(result)}
-                    className="w-full flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors text-left border-b border-outline-variant/5 last:border-0"
+                    className="hover:bg-surface-container-low border-outline-variant/5 flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0"
                   >
-                    <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-on-surface font-medium line-clamp-2">
+                    <MapPin className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
+                    <span className="text-on-surface line-clamp-2 text-sm font-medium">
                       {result.display_name}
                     </span>
                   </button>
@@ -168,73 +220,78 @@ export default function MapPage() {
       {/* OSM Map Embed */}
       <div className="absolute inset-0 z-0">
         {mapUrl ? (
-          <iframe
-            src={mapUrl}
-            title="Map"
-            className="w-full h-full border-0"
-            allowFullScreen
-          />
+          <iframe src={mapUrl} title="Map" className="h-full w-full border-0" allowFullScreen />
         ) : (
-          <div className="w-full h-full bg-surface-container flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <div className="bg-surface-container flex h-full w-full items-center justify-center">
+            <Loader2 className="text-primary h-8 w-8 animate-spin" />
           </div>
         )}
       </div>
 
       {/* Filter Chips */}
-      <div className="absolute bottom-[17rem] left-0 right-0 z-[400] px-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="absolute right-0 bottom-[17rem] left-0 z-[400] flex gap-2 overflow-x-auto px-4 pb-1">
         {filters.map((f) => (
           <button
             key={f.name}
             onClick={() => setActiveFilter(f.name)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full font-bold text-xs shadow transition-all active:scale-95 flex items-center gap-1.5 ${
+            className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold shadow transition-all active:scale-95 ${
               activeFilter === f.name
-                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                : 'bg-white/95 backdrop-blur-md text-green-900 border border-outline-variant/10'
+                ? 'bg-primary shadow-primary/20 text-white shadow-lg'
+                : 'border-outline-variant/10 border bg-white/95 text-green-900 backdrop-blur-md'
             }`}
           >
-            {f.icon && <f.icon className="w-3.5 h-3.5" />}
+            {f.icon && <f.icon className="h-3.5 w-3.5" />}
             {f.name}
           </button>
         ))}
       </div>
 
       {/* Bottom Sheet – Facility List */}
-      <div className="absolute bottom-0 left-0 right-0 z-[400] bg-white/95 backdrop-blur-2xl rounded-t-3xl shadow-2xl border-t border-white/20 max-h-72 overflow-hidden">
-        <div className="w-12 h-1.5 bg-surface-container-highest rounded-full mx-auto mt-3 mb-2" />
-        <div className="px-6 pb-2 flex items-center justify-between gap-3">
+      <div className="absolute right-0 bottom-0 left-0 z-[400] max-h-72 overflow-hidden rounded-t-3xl border-t border-white/20 bg-white/95 shadow-2xl backdrop-blur-2xl">
+        <div className="bg-surface-container-highest mx-auto mt-3 mb-2 h-1.5 w-12 rounded-full" />
+        <div className="flex items-center justify-between gap-3 px-6 pb-2">
           <div>
-            <h2 className="text-base font-extrabold text-on-surface">Nearby Disposal Points</h2>
+            <h2 className="text-on-surface text-base font-extrabold">Nearby Disposal Points</h2>
             {location.state?.item && (
-              <p className="text-xs text-on-surface-variant mt-1">
-                Recommended for <span className="font-bold text-primary">{location.state.item}</span>
+              <p className="text-on-surface-variant mt-1 text-xs">
+                Recommended for{' '}
+                <span className="text-primary font-bold">{location.state.item}</span>
               </p>
             )}
           </div>
-          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">{visibleFacilities.length} Found</span>
+          <span className="text-primary bg-primary/10 rounded-full px-2 py-1 text-xs font-bold">
+            {visibleFacilities.length} Found
+          </span>
         </div>
-        <div className="overflow-y-auto max-h-48 px-4 pb-4 space-y-3">
+        <div className="max-h-48 space-y-3 overflow-y-auto px-4 pb-4">
           {visibleFacilities.map((facility) => (
             <div
               key={facility.name}
-              className={`flex items-center gap-4 p-4 rounded-2xl border border-outline-variant/10 ${selectedFacility?.name === facility.name ? 'border-primary/30 bg-primary/5' : 'bg-surface-container-low'} cursor-pointer transition-all hover:shadow-md`}
+              className={`border-outline-variant/10 flex items-center gap-4 rounded-2xl border p-4 ${selectedFacility?.name === facility.name ? 'border-primary/30 bg-primary/5' : 'bg-surface-container-low'} cursor-pointer transition-all hover:shadow-md`}
               onClick={() => {
                 setSelectedFacility(facility);
                 updateMapUrl(facility.lat, facility.lng, 16);
               }}
             >
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${facility.bg}`}>
-                <facility.icon className={`w-6 h-6 ${facility.color}`} />
+              <div
+                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${facility.bg}`}
+              >
+                <facility.icon className={`h-6 w-6 ${facility.color}`} />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm text-on-surface truncate">{facility.name}</h3>
-                <p className="text-xs text-on-surface-variant">{facility.status} · {facility.distance}</p>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-on-surface truncate text-sm font-bold">{facility.name}</h3>
+                <p className="text-on-surface-variant text-xs">
+                  {facility.status} · {facility.distance}
+                </p>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); navigateTo(facility); }}
-                className="p-2.5 rounded-full bg-primary text-white shadow-md active:scale-95 transition-all flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigateTo(facility);
+                }}
+                className="bg-primary flex-shrink-0 rounded-full p-2.5 text-white shadow-md transition-all active:scale-95"
               >
-                <Navigation className="w-4 h-4" />
+                <Navigation className="h-4 w-4" />
               </button>
             </div>
           ))}
