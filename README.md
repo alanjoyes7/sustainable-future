@@ -1,121 +1,92 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🌱 The-Diome
 
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/29be90f8-f3f2-4c3e-841f-a9e651de2f23
-
-## Run Locally
-
-**Prerequisites:** Node.js
-
-1. Install dependencies:
-   `npm install`
-2. Set the required keys in `.env.local`
-3. Run the app:
-   `npm run dev`
-
-## Deploy on Render
-
-1. Push this repo to GitHub.
-2. In Render, create a **Web Service** from the repo.
-3. Use these settings:
-   - **Build Command:** `npm install && npm run build`
-   - **Start Command:** `npm start`
-4. Add these environment variables in Render:
-   - `GEMINI_API_KEY`
-   - `VITE_FIREBASE_API_KEY`
-   - `VITE_FIREBASE_AUTH_DOMAIN`
-   - `VITE_FIREBASE_PROJECT_ID`
-   - `VITE_FIREBASE_STORAGE_BUCKET`
-   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
-   - `VITE_FIREBASE_APP_ID`
-   - `VITE_FIREBASE_MEASUREMENT_ID`
-   - `NODE_ENV=production`
-5. In Firebase Console, add your Render domain to **Authentication > Authorized domains**.
-
-The server now uses `process.env.PORT`, so it is ready for Render/Railway-style deployment.
-🌱 The-Diome
-
-""Live Demo" (https://img.shields.io/badge/Live-Demo-green?style=for-the-badge&logo=google-chrome)" (https://the-biome-313680272624.asia-south1.run.app/)
-""GitHub Repo" (https://img.shields.io/badge/Repository-View-blue?style=for-the-badge&logo=github)" (https://github.com/alanjoyes7/sustainable-future)
-""Built with Google AI" (https://img.shields.io/badge/Powered%20by-Google%20AI-orange?style=for-the-badge&logo=google)"
-""Deployed on Cloud Run" (https://img.shields.io/badge/Deploy-Google%20Cloud%20Run-4285F4?style=for-the-badge&logo=google-cloud)"
+[![Live Demo](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge\&logo=google-chrome)](https://the-biome-313680272624.asia-south1.run.app/)
+[![GitHub Repo](https://img.shields.io/badge/Repository-View-blue?style=for-the-badge\&logo=github)](https://github.com/alanjoyes7/sustainable-future)
+[![Powered by Google AI](https://img.shields.io/badge/Powered%20by-Google%20AI-orange?style=for-the-badge\&logo=google)]()
+[![Deploy-GCP](https://img.shields.io/badge/Deploy-Google%20Cloud%20Run-4285F4?style=for-the-badge\&logo=google-cloud)]()
 
 ---
 
-📌 Problem Statement
+## 📌 Problem Statement
 
-The world is facing increasing environmental challenges such as climate change, unsustainable resource usage, and lack of awareness about eco-friendly practices. Many individuals and organizations struggle to understand their environmental impact and take actionable steps toward sustainability.
-
----
-
-💡 Project Description
-
-The-Diome is an AI-powered web platform that promotes sustainable living by providing intelligent, personalized insights and recommendations.
-
-🔧 How it works
-
-- Users input lifestyle or environmental data
-- The system processes the data using AI
-- Generates smart, personalized sustainability recommendations
-- Provides actionable insights for better decision-making
-
-🚀 Why it’s useful
-
-- 🌍 Encourages eco-friendly habits
-- 🤖 Uses AI for personalized suggestions
-- ⚡ Simple and intuitive interface
-- 📊 Helps users understand their environmental impact
+The world is facing increasing environmental challenges such as climate change, unsustainable resource usage, and lack of awareness about eco-friendly practices. Many individuals struggle to understand their environmental impact and take meaningful action toward sustainability.
 
 ---
 
-🧠 Google AI Usage
+## 💡 Project Description
 
-🛠️ Tools / Models Used
+**The-Diome** is an AI-powered sustainability platform that helps users track, analyze, and improve their environmental impact.
 
-- Google AI Studio
-- Gemini API (if used, else remove)
-- Google Cloud Run
+### 🔧 Features
 
-⚙️ How Google AI Was Used
+* ♻️ AI-powered waste classification (camera + upload)
+* 📊 Environmental impact tracking (CO2, waste, trees)
+* 🏆 Gamified leaderboard & eco challenges
+* 📅 Weekly sustainability tasks
+* 🧠 Daily eco insights powered by AI
 
-- Integrated Google AI to analyze user input in real-time
-- Generates intelligent sustainability recommendations
-- Provides contextual insights using AI models
-- Enhances user interaction with smart responses
+### 🚀 How it works
 
----
-
-📸 Proof of Google AI Usage
-
-📂 Add screenshots inside "/proof" folder:
-
-- AI Proof Screenshot
+* User scans waste using camera or uploads image
+* Google AI (Gemini) analyzes and classifies waste
+* System calculates environmental impact
+* Users earn eco points and track progress
 
 ---
 
-🖼️ Screenshots
+## 🧠 Google AI Usage
 
-Add your screenshots here
+### 🛠️ Tools / Models Used
 
-- Screenshot1
-- Screenshot2
+* Google AI Studio
+* Gemini API
+* Google Cloud Run
+
+### ⚙️ How Google AI Was Used
+
+* Gemini AI is used to classify waste from images
+* Generates eco tips and sustainability insights
+* Provides intelligent responses in real-time
+* Enables smart environmental decision-making
 
 ---
 
-🎥 Demo Video
+## 📸 Proof of Google AI Usage
 
-📺 Watch Demo (max 3 min):
-Add your Google Drive link here
+![AI Proof](./proof/proof1.png)
 
 ---
 
-⚙️ Installation Steps
+## 🖼️ Screenshots
 
+### 🔐 Authentication Page
+
+![Screenshot 1](./screenshots/img1.jpeg)
+
+### 📊 Dashboard
+
+![Screenshot 2](./screenshots/img2.jpeg)
+
+### 📷 AI Waste Scanner
+
+![Screenshot 3](./screenshots/img3.jpeg)
+
+### 🤖 AI Classification in Progress
+
+![Screenshot 4](./screenshots/img4.jpeg)
+
+---
+
+## 🎥 Demo Video
+
+📺 **Watch Demo:**
+https://drive.google.com/file/d/14tfx8kxOutwYGyv5fxfGBWnZu0oEzh_J/view?usp=drive_link
+
+---
+
+## ⚙️ Installation Steps
+
+```bash
 # Clone the repository
 git clone https://github.com/alanjoyes7/sustainable-future.git
 
@@ -127,34 +98,35 @@ npm install
 
 # Start the development server
 npm start
+```
 
 ---
 
-🏗️ Tech Stack
+## 🏗️ Tech Stack
 
-- Frontend: HTML / CSS / JavaScript (or React if used)
-- Backend: Node.js
-- AI: Google AI Studio / Gemini
-- Deployment: Google Cloud Run
-
----
-
-🌍 Future Scope
-
-- 📱 Mobile application
-- 🌐 Real-time environmental data integration
-- 👥 Community-driven sustainability tracking
-- 📊 Advanced analytics dashboard
+* **Frontend:** HTML / CSS / JavaScript
+* **Backend:** Node.js
+* **AI:** Google Gemini API
+* **Deployment:** Google Cloud Run
 
 ---
 
-👨‍💻 Contributors
+## 🌍 Future Scope
 
-- "Alan Joyes" (https://github.com/alanjoyes7)
-- (Add your name)
+* 📱 Mobile app version
+* 🌐 Real-time environmental data integration
+* 🧑‍🤝‍🧑 Community features
+* 📊 Advanced analytics dashboard
 
 ---
 
-⭐ Support
+## 👨‍💻 Contributors
+
+* [Alan Joyes](https://github.com/alanjoyes7)
+* [Adwaith P. S]
+
+---
+
+## ⭐ Support
 
 If you like this project, give it a ⭐ on GitHub!
